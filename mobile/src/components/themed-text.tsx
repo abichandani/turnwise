@@ -1,27 +1,34 @@
-import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
+import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { Fonts, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
-  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
+  type?: 'display' | 'displayLarge' | 'title' | 'body' | 'bodyMuted' | 'small' | 'label' | 'code';
   themeColor?: ThemeColor;
 };
 
-export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
+const DEFAULT_COLOR_FOR_TYPE: Partial<Record<NonNullable<ThemedTextProps['type']>, ThemeColor>> = {
+  bodyMuted: 'textMuted',
+  small: 'textFaint',
+  label: 'textFainter',
+};
+
+export function ThemedText({ style, type = 'body', themeColor, ...rest }: ThemedTextProps) {
   const theme = useTheme();
+  const color = theme[themeColor ?? DEFAULT_COLOR_FOR_TYPE[type] ?? 'text'];
 
   return (
     <Text
       style={[
-        { color: theme[themeColor ?? 'text'] },
-        type === 'default' && styles.default,
+        { color },
+        type === 'displayLarge' && styles.displayLarge,
+        type === 'display' && styles.display,
         type === 'title' && styles.title,
+        type === 'body' && styles.body,
+        type === 'bodyMuted' && styles.bodyMuted,
         type === 'small' && styles.small,
-        type === 'smallBold' && styles.smallBold,
-        type === 'subtitle' && styles.subtitle,
-        type === 'link' && styles.link,
-        type === 'linkPrimary' && styles.linkPrimary,
+        type === 'label' && styles.label,
         type === 'code' && styles.code,
         style,
       ]}
@@ -31,43 +38,44 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 }
 
 const styles = StyleSheet.create({
-  small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
+  displayLarge: {
+    fontFamily: Fonts.display,
+    fontSize: 40,
+    lineHeight: 46,
   },
-  smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
-  },
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
+  display: {
+    fontFamily: Fonts.display,
+    fontSize: 27,
+    lineHeight: 33,
   },
   title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
+    fontFamily: Fonts.display,
+    fontSize: 18,
+    lineHeight: 23,
   },
-  subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
+  body: {
+    fontFamily: Fonts.bodySemiBold,
+    fontSize: 15.5,
+    lineHeight: 21,
   },
-  link: {
-    lineHeight: 30,
-    fontSize: 14,
+  bodyMuted: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13.5,
+    lineHeight: 19,
   },
-  linkPrimary: {
-    lineHeight: 30,
-    fontSize: 14,
-    color: '#3c87f7',
+  small: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 12.5,
+    lineHeight: 17,
+  },
+  label: {
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 12,
+    lineHeight: 15,
+    letterSpacing: 0.4,
   },
   code: {
     fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
     fontSize: 12,
   },
 });

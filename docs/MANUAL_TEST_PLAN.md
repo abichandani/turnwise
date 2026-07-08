@@ -8,4 +8,9 @@ Apps Script has no local emulator and can't run inside Jest, so every real HTTP 
 - [ ] Deployed Web App: `GET ?action=ping` returns `{"ok":true,"data":{"pong":true}}` — needs a live deployment, see `docs/SETUP.md`
 - [x] Expo app boots (Metro bundler starts, `tsc --noEmit` clean) — needs a real device/simulator walkthrough to confirm the rendered screen
 
-(Phases 1–10 checklists added as each phase lands.)
+## Phase 1
+- [x] `tsc --noEmit` clean with the new theme tokens, fonts, and `@turnwise/shared` monorepo import
+- [x] Web bundle compiles end-to-end via `expo start --web` (927 modules, no errors) — confirms Metro monorepo resolution + Google Fonts load
+- [ ] Visual check on a real device/simulator: open the design-system showcase screen and confirm the warm cream/orange palette, Fredoka/Nunito fonts, and room ring render as expected (not yet done on-device, only verified via web bundle output)
+
+(Phases 2–10 checklists added as each phase lands.)

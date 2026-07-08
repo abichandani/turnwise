@@ -1,98 +1,124 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { ROOM_LIST } from '@turnwise/shared';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Avatar, Badge, Button, Card, EmptyState, PillToggle, RoomRing, TextField } from '@/components/ui';
+import { Spacing } from '@/constants/theme';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+const SAMPLE_ASSIGNMENTS = [
+  { roomNumber: ROOM_LIST[3], emoji: '📰', color: '#4B87C7' },
+  { roomNumber: ROOM_LIST[10], emoji: '🦆', color: '#5AA46B' },
+  { roomNumber: ROOM_LIST[0], emoji: '🍽️', color: '#EE9B3F' },
+];
 
-export default function HomeScreen() {
+export default function DesignSystemShowcase() {
+  const [direction, setDirection] = useState<'anti' | 'cw'>('anti');
+  const [password, setPassword] = useState('');
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
+    <ThemedView type="background" style={styles.fill}>
+      <SafeAreaView style={styles.fill}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <ThemedText type="displayLarge">Turnwise</ThemedText>
+          <ThemedText type="bodyMuted" style={styles.subheading}>
+            Design system showcase — Phase 1
           </ThemedText>
-        </ThemedView>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+          <Card style={styles.section}>
+            <ThemedText type="title">Buttons</ThemedText>
+            <View style={styles.row}>
+              <Button label="Primary" variant="primary" flex onPress={() => {}} />
+              <Button label="Secondary" variant="secondary" flex onPress={() => {}} />
+            </View>
+            <View style={styles.row}>
+              <Button label="Danger" variant="danger" flex onPress={() => {}} />
+              <Button label="Ghost" variant="ghost" flex onPress={() => {}} />
+            </View>
+          </Card>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+          <Card style={styles.section}>
+            <ThemedText type="title">Text field</ThemedText>
+            <TextField
+              label="PASSWORD"
+              placeholder="Choose a password"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              hint="Looks good."
+              hintTone="success"
+              style={styles.fieldSpacing}
+            />
+          </Card>
 
-        {Platform.OS === 'web' && <WebBadge />}
+          <Card style={styles.section}>
+            <ThemedText type="title">Pill toggle</ThemedText>
+            <PillToggle
+              options={[
+                { value: 'anti', label: '↺ Anti-CW' },
+                { value: 'cw', label: '↻ CW' },
+              ]}
+              value={direction}
+              onChange={setDirection}
+              activeColor="#EE9B3F"
+            />
+          </Card>
+
+          <Card style={styles.section}>
+            <ThemedText type="title">Badges &amp; avatars</ThemedText>
+            <View style={styles.row}>
+              <Badge label="Resident" tone="success" />
+              <Badge label="Admin" tone="purple" />
+              <Badge label="Denied" tone="danger" />
+            </View>
+            <View style={styles.row}>
+              <Avatar name="Mara" />
+              <Avatar name="Jonas" />
+              <Avatar name="You" emphasized />
+            </View>
+          </Card>
+
+          <Card style={styles.section}>
+            <ThemedText type="title">Room ring ({ROOM_LIST.length} rooms)</ThemedText>
+            <View style={styles.ringWrap}>
+              <RoomRing rooms={ROOM_LIST} assignments={SAMPLE_ASSIGNMENTS} highlightRoomNumber={ROOM_LIST[0]} />
+            </View>
+          </Card>
+
+          <View style={styles.section}>
+            <EmptyState title="That's everything for now 🎉" subtitle="We'll ping you when a card lands on your door." />
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  fill: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+  content: {
+    padding: Spacing.four,
     gap: Spacing.four,
   },
-  title: {
-    textAlign: 'center',
+  subheading: {
+    marginTop: -Spacing.two,
   },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
+  section: {
     gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: Spacing.two + 2,
+  },
+  fieldSpacing: {
+    marginTop: 0,
+  },
+  ringWrap: {
+    alignItems: 'center',
+    paddingVertical: Spacing.two,
   },
 });
