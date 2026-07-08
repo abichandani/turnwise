@@ -4,6 +4,9 @@ dist/
 *.log
 .DS_Store
 
+# Local planning notes — not part of the shipped repo
+instructions/
+
 # Expo / EAS
 mobile/.expo/
 mobile/dist/
