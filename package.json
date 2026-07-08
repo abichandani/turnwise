@@ -1,0 +1,11 @@
+{
+  "name": "turnwise",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "mobile"
+  ],
+  "scripts": {
+    "test": "npm run test --workspace=shared"
+  }
+}

@@ -1,0 +1,13 @@
+### Health check
+# Replace {{baseUrl}} with the deployed Web App URL (see docs/SETUP.md step 6).
+GET {{baseUrl}}?action=ping
+
+### Template for every other action — POST, action + token + payload
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "action": "ping",
+  "token": null,
+  "payload": {}
+}

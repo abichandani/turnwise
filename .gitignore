@@ -1,0 +1,23 @@
+node_modules/
+.expo/
+dist/
+*.log
+.DS_Store
+
+# Expo / EAS
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/.env
+mobile/*.p8
+mobile/*.p12
+mobile/*.key
+mobile/*.mobileprovision
+
+# Apps Script — real project id/deployment id are per-developer
+apps-script/.clasp.json
+apps-script/dist/
+
+# editors
+.vscode/
+.idea/
