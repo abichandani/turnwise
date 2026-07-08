@@ -2,6 +2,9 @@
 // Populated incrementally as each domain file lands (Auth.gs, Users.gs, Duties.gs, ...).
 var ACTIONS = {
   ping: { handler: function () { return { ok: true }; }, requiresAuth: false, requiresAdmin: false },
+  register: { handler: register, requiresAuth: false, requiresAdmin: false },
+  login: { handler: login, requiresAuth: false, requiresAdmin: false },
+  getMe: { handler: getMe, requiresAuth: true, requiresAdmin: false },
 };
 
 function routeAction_(actionName, payload, token) {
@@ -12,7 +15,7 @@ function routeAction_(actionName, payload, token) {
 
   var authContext = null;
   if (entry.requiresAuth) {
-    authContext = verifyToken_(token); // defined in Token.gs, added in Phase 2
+    authContext = verifyToken_(token);
     if (entry.requiresAdmin && !authContext.isAdmin) {
       throw AppError(ERROR_CODES.FORBIDDEN_NOT_ADMIN, 'This action requires an admin account.');
     }

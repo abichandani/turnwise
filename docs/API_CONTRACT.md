@@ -19,11 +19,11 @@ Filled in per-action as each phase implements it; current status below.
 
 ## Public (no token)
 - [x] `ping` — Phase 0
-- [ ] `register` — Phase 2
-- [ ] `login` — Phase 2
+- [x] `register` — Phase 2
+- [x] `login` — Phase 2
 
 ## Authenticated (any user)
-- [ ] `getMe` — Phase 2
+- [x] `getMe` — Phase 2
 - [ ] `updatePassword` / `updateDetails` / `deleteAccount` — Phase 8
 - [ ] `registerPushToken` — Phase 6
 - [ ] `listDuties` / `getMyDuties` / `completeDuty` — Phase 3

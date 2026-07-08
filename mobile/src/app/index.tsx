@@ -1,12 +1,14 @@
 import { ROOM_LIST } from '@turnwise/shared';
+import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Avatar, Badge, Button, Card, EmptyState, PillToggle, RoomRing, TextField } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
+import { useAuth } from '@/hooks/use-auth';
 
 const SAMPLE_ASSIGNMENTS = [
   { roomNumber: ROOM_LIST[3], emoji: '📰', color: '#4B87C7' },
@@ -15,8 +17,21 @@ const SAMPLE_ASSIGNMENTS = [
 ];
 
 export default function DesignSystemShowcase() {
+  const { status, user, signOut } = useAuth();
   const [direction, setDirection] = useState<'anti' | 'cw'>('anti');
   const [password, setPassword] = useState('');
+
+  if (status === 'loading') {
+    return (
+      <ThemedView type="background" style={[styles.fill, styles.centered]}>
+        <ActivityIndicator />
+      </ThemedView>
+    );
+  }
+
+  if (status === 'signedOut') {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   return (
     <ThemedView type="background" style={styles.fill}>
@@ -24,7 +39,7 @@ export default function DesignSystemShowcase() {
         <ScrollView contentContainerStyle={styles.content}>
           <ThemedText type="displayLarge">Turnwise</ThemedText>
           <ThemedText type="bodyMuted" style={styles.subheading}>
-            Design system showcase — Phase 1
+            Welcome back, {user?.name} — design system showcase
           </ThemedText>
 
           <Card style={styles.section}>
@@ -90,6 +105,8 @@ export default function DesignSystemShowcase() {
           <View style={styles.section}>
             <EmptyState title="That's everything for now 🎉" subtitle="We'll ping you when a card lands on your door." />
           </View>
+
+          <Button label="Log out" variant="secondary" onPress={signOut} />
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -99,6 +116,10 @@ export default function DesignSystemShowcase() {
 const styles = StyleSheet.create({
   fill: {
     flex: 1,
+  },
+  centered: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     padding: Spacing.four,

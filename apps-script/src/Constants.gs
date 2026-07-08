@@ -8,6 +8,42 @@ var ROOM_LIST = (function () {
 
 var ADMIN_ROOM = 'ADMIN';
 
+// Sheet tab names and header rows — column order must match docs/SHEET_SCHEMA.md exactly.
+var SHEET_NAMES = {
+  USERS: 'Users',
+  FLOOR_CONFIG: 'FloorConfig',
+  LOGS: 'Logs',
+};
+
+var USERS_HEADERS = [
+  'room_number',
+  'name',
+  'password_hash',
+  'password_salt',
+  'is_admin',
+  'must_change_password',
+  'expo_push_token',
+  'is_away',
+  'away_delegate_room',
+  'is_deleted',
+  'deleted_at',
+  'created_at',
+  'updated_at',
+];
+
+var FLOORCONFIG_HEADERS = ['key', 'value', 'updated_at', 'updated_by'];
+
+var LOGS_HEADERS = ['log_id', 'event_type', 'timestamp', 'actor_room_number', 'details'];
+
+var FLOOR_CONFIG_KEYS = {
+  FLOOR_PASSKEY: 'FLOOR_PASSKEY',
+  RETENTION_DAYS: 'RETENTION_DAYS',
+};
+
+var DEFAULT_PASSWORD_HASH_ITERATIONS = 10000;
+var TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+var MIN_PASSWORD_LENGTH = 8;
+
 var EVENT_TYPES = {
   ACCOUNT_CREATED: 'ACCOUNT_CREATED',
   ACCOUNT_DELETED: 'ACCOUNT_DELETED',
