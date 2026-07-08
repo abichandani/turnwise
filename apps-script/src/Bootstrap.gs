@@ -7,8 +7,8 @@ function bootstrapSheets() {
   ensureSheet_(SHEET_NAMES.LOGS, LOGS_HEADERS);
   ensureSheet_(SHEET_NAMES.DUTIES, DUTIES_HEADERS);
   ensureSheet_(SHEET_NAMES.DUTY_HISTORY, DUTY_HISTORY_HEADERS);
-  // Later phases append their own tab creation here (SkipRequests in Phase 4,
-  // Notifications in Phase 6).
+  ensureSheet_(SHEET_NAMES.SKIP_REQUESTS, SKIP_REQUESTS_HEADERS);
+  // Later phases append their own tab creation here (Notifications in Phase 6).
 }
 
 function bootstrapAdmin() {

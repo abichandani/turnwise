@@ -12,6 +12,7 @@ import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { ApiError } from '@/lib/api';
 import { createDuty, deleteDuty, listDuties, updateDuty, type Duty, type DutyInput } from '@/lib/duties';
+import { listSkipRequests, resolveSkipRequest, type SkipRequest } from '@/lib/skip-requests';
 
 const DUTY_VISUALS = [
   { emoji: '📰', color: '#4B87C7' },
@@ -24,20 +25,27 @@ const DUTY_VISUALS = [
 export default function DutiesScreen() {
   const { user, token } = useAuth();
   const [duties, setDuties] = useState<Duty[] | null>(null);
+  const [skipRequests, setSkipRequests] = useState<SkipRequest[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [editingDutyId, setEditingDutyId] = useState<string | 'new' | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
     setError(null);
     try {
-      setDuties(await listDuties(token));
+      const [allDuties, pending] = await Promise.all([
+        listDuties(token),
+        user?.isAdmin ? listSkipRequests(token) : Promise.resolve([]),
+      ]);
+      setDuties(allDuties);
+      setSkipRequests(pending);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Some error occurred.');
     }
-  }, [token]);
+  }, [token, user?.isAdmin]);
 
   useEffect(() => {
     load();
@@ -71,6 +79,22 @@ export default function DutiesScreen() {
     }
   };
 
+  const onResolveSkip = async (requestId: string, decision: 'APPROVE' | 'DENY') => {
+    if (!token) return;
+    setResolvingId(requestId);
+    try {
+      await resolveSkipRequest(token, requestId, decision);
+      await load();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Some error occurred.');
+    } finally {
+      setResolvingId(null);
+    }
+  };
+
+  const pendingSkipRequests = skipRequests.filter((r) => r.status === 'PENDING');
+  const dutyById = new Map((duties ?? []).map((d) => [d.id, d]));
+
   const assignments = (duties ?? [])
     .filter((d) => d.currentAssignedRoom)
     .map((d, i) => ({
@@ -98,6 +122,36 @@ export default function DutiesScreen() {
             <ActivityIndicator />
           ) : (
             <>
+              {user?.isAdmin && pendingSkipRequests.length > 0 ? (
+                <Card style={styles.section}>
+                  <ThemedText type="title">Skip requests</ThemedText>
+                  {pendingSkipRequests.map((request) => (
+                    <View key={request.id} style={styles.row}>
+                      <View style={styles.grow}>
+                        <ThemedText type="body">
+                          {dutyById.get(request.dutyId)?.name ?? 'Unknown duty'} — Room {request.roomNumber}
+                        </ThemedText>
+                        <ThemedText type="small" themeColor="textFaint">
+                          &ldquo;{request.reason}&rdquo;
+                        </ThemedText>
+                      </View>
+                      <Button
+                        label="Approve"
+                        variant="primary"
+                        loading={resolvingId === request.id}
+                        onPress={() => onResolveSkip(request.id, 'APPROVE')}
+                      />
+                      <Button
+                        label="Deny"
+                        variant="danger"
+                        loading={resolvingId === request.id}
+                        onPress={() => onResolveSkip(request.id, 'DENY')}
+                      />
+                    </View>
+                  ))}
+                </Card>
+              ) : null}
+
               {duties.length > 0 ? (
                 <Card style={styles.section}>
                   <View style={styles.ringWrap}>

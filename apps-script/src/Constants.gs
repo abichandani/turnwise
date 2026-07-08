@@ -15,6 +15,7 @@ var SHEET_NAMES = {
   LOGS: 'Logs',
   DUTIES: 'Duties',
   DUTY_HISTORY: 'DutyAssignmentHistory',
+  SKIP_REQUESTS: 'SkipRequests',
 };
 
 var USERS_HEADERS = [
@@ -72,6 +73,25 @@ var DUTY_STATUS = {
   AWAY_AUTO_SKIPPED: 'AWAY_AUTO_SKIPPED',
 };
 
+var SKIP_REQUESTS_HEADERS = [
+  'request_id',
+  'duty_id',
+  'room_number',
+  'reason',
+  'status',
+  'requested_at',
+  'resolved_at',
+  'resolved_by',
+  'resolution_note',
+];
+
+var SKIP_REQUEST_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  DENIED: 'DENIED',
+  CANCELLED: 'CANCELLED',
+};
+
 var FLOOR_CONFIG_KEYS = {
   FLOOR_PASSKEY: 'FLOOR_PASSKEY',
   RETENTION_DAYS: 'RETENTION_DAYS',
@@ -117,6 +137,7 @@ var ERROR_CODES = {
   DUTY_NOT_ASSIGNED_TO_YOU: 'DUTY_NOT_ASSIGNED_TO_YOU',
   DUTY_NOT_FOUND: 'DUTY_NOT_FOUND',
   SKIP_REQUEST_ALREADY_PENDING: 'SKIP_REQUEST_ALREADY_PENDING',
+  SKIP_REQUEST_NOT_FOUND: 'SKIP_REQUEST_NOT_FOUND',
   FORBIDDEN_NOT_ADMIN: 'FORBIDDEN_NOT_ADMIN',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   TOKEN_INVALID: 'TOKEN_INVALID',

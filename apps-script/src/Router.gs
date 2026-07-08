@@ -11,6 +11,10 @@ var ACTIONS = {
   createDuty: { handler: createDuty, requiresAuth: true, requiresAdmin: true },
   updateDuty: { handler: updateDuty, requiresAuth: true, requiresAdmin: true },
   deleteDuty: { handler: deleteDuty, requiresAuth: true, requiresAdmin: true },
+  requestSkip: { handler: requestSkip, requiresAuth: true, requiresAdmin: false },
+  getMySkipRequests: { handler: getMySkipRequests, requiresAuth: true, requiresAdmin: false },
+  listSkipRequests: { handler: listSkipRequests, requiresAuth: true, requiresAdmin: true },
+  resolveSkipRequest: { handler: resolveSkipRequest, requiresAuth: true, requiresAdmin: true },
 };
 
 function routeAction_(actionName, payload, token) {

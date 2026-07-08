@@ -27,19 +27,7 @@ function completeDuty(payload, authContext) {
     }
 
     var now = nowIso_();
-    closeOpenHistoryRow_(dutyId, now);
-
-    var occupied = getActiveResidentRoomSet_();
-    var nextRoom = getNextOccupiedRoom_(ROOM_LIST, duty.direction, duty.current_assigned_room, occupied);
-
-    updateRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId, {
-      current_assigned_room: nextRoom || '',
-      updated_at: now,
-    });
-
-    if (nextRoom) {
-      appendAssignmentHistory_(dutyId, nextRoom, now);
-    }
+    var nextRoom = advanceDutyRotation_(duty, now, DUTY_STATUS.COMPLETED);
 
     appendLog_(EVENT_TYPES.DUTY_COMPLETED, authContext.roomNumber, { dutyId: dutyId });
     if (nextRoom) {
@@ -172,12 +160,34 @@ function publicDuty_(duty) {
   };
 }
 
-function closeOpenHistoryRow_(dutyId, now) {
+// Closes the duty's open ASSIGNED history row and advances the rotation to the next
+// occupied room. Shared by completeDuty and resolveSkipRequest's approve path — the only
+// difference between "completed" and "skipped" is what status the closed history row
+// gets. Returns the next room (or null if no room is occupied).
+function advanceDutyRotation_(duty, now, closedStatus) {
+  closeOpenHistoryRow_(duty.duty_id, now, closedStatus);
+
+  var occupied = getActiveResidentRoomSet_();
+  var nextRoom = getNextOccupiedRoom_(ROOM_LIST, duty.direction, duty.current_assigned_room, occupied);
+
+  updateRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', duty.duty_id, {
+    current_assigned_room: nextRoom || '',
+    updated_at: now,
+  });
+
+  if (nextRoom) {
+    appendAssignmentHistory_(duty.duty_id, nextRoom, now);
+  }
+
+  return nextRoom;
+}
+
+function closeOpenHistoryRow_(dutyId, now, status) {
   var rows = getSheetRows_(SHEET_NAMES.DUTY_HISTORY);
   for (var i = 0; i < rows.length; i++) {
     if (rows[i].duty_id === dutyId && rows[i].status === DUTY_STATUS.ASSIGNED) {
       updateRowByKey_(SHEET_NAMES.DUTY_HISTORY, 'history_id', rows[i].history_id, {
-        status: DUTY_STATUS.COMPLETED,
+        status: status,
         completed_at: now,
       });
       return;

@@ -42,4 +42,18 @@ Apps Script has no local emulator and can't run inside Jest, so every real HTTP 
 - [ ] Concurrent `completeDuty` calls for the same duty (fired near-simultaneously) — only one rotation happens, confirming `LockService` prevents a double-advance race
 - [ ] Mobile: home tab shows assigned duties (or the empty-state message with none assigned) and "Mark done" completes + refreshes; duties tab shows the room ring + full duty list including admin add/edit/delete; account tab shows the signed-in user's info and logs out correctly
 
-(Phases 4–10 checklists added as each phase lands.)
+## Phase 4
+- [ ] `bootstrapSheets()` re-run creates the `SkipRequests` tab with correct header row (idempotent)
+- [ ] `requestSkip` (as the assigned resident) happy path with a reason → `PENDING` row in `SkipRequests`, logs `SKIP_REQUESTED`; duty's `current_assigned_room` unchanged
+- [ ] `requestSkip` with a blank/whitespace-only reason → `MISSING_REASON`
+- [ ] `requestSkip` called by a room the duty isn't assigned to → `DUTY_NOT_ASSIGNED_TO_YOU`
+- [ ] `requestSkip` twice for the same duty/room while the first is still `PENDING` → second call → `SKIP_REQUEST_ALREADY_PENDING`
+- [ ] `getMySkipRequests` returns only the caller's own requests, newest first
+- [ ] `listSkipRequests` (as admin) returns all requests across all rooms, newest first
+- [ ] `resolveSkipRequest` with `decision: 'APPROVE'` → request becomes `APPROVED` (`resolved_at`/`resolved_by` set), duty's open history row closes as `SKIPPED_APPROVED`, rotates to the next occupied room exactly like `completeDuty`, logs `SKIP_APPROVED` + `DUTY_ASSIGNED`
+- [ ] `resolveSkipRequest` with `decision: 'DENY'` (+ optional note) → request becomes `DENIED` with the note stored, duty's `current_assigned_room` is untouched, logs `SKIP_DENIED`
+- [ ] `resolveSkipRequest` called by a non-admin token → `FORBIDDEN_NOT_ADMIN`
+- [ ] `resolveSkipRequest` on an already-resolved or unknown `requestId` → `SKIP_REQUEST_NOT_FOUND`
+- [ ] Mobile: home tab shows "Request skip" on an assigned duty, submitting hides "Mark done" and shows the pending state with the reason; duties tab's admin skip-request queue shows the pending request and Approve/Deny both refresh the screen correctly
+
+(Phases 5–10 checklists added as each phase lands.)

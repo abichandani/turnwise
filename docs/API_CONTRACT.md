@@ -27,12 +27,12 @@ Filled in per-action as each phase implements it; current status below.
 - [ ] `updatePassword` / `updateDetails` / `deleteAccount` — Phase 8
 - [ ] `registerPushToken` — Phase 6
 - [x] `listDuties` / `getMyDuties` / `completeDuty` — Phase 3
-- [ ] `requestSkip` / `getMySkipRequests` — Phase 4
+- [x] `requestSkip` / `getMySkipRequests` — Phase 4
 - [ ] `toggleAway` / `sendNudge` — Phase 5
 - [ ] `listNotifications` / `markNotificationRead` / `markAllNotificationsRead` — Phase 6
 
 ## Admin-only
 - [x] `createDuty` / `updateDuty` / `deleteDuty` — Phase 3
 - [ ] `listUsers` / `deleteUser` / `promoteUser` — Phase 7
-- [ ] `listSkipRequests` / `resolveSkipRequest` — Phase 4
+- [x] `listSkipRequests` / `resolveSkipRequest` — Phase 4
 - [ ] `regeneratePasskey` / `getFloorConfig` — Phase 7
