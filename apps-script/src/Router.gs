@@ -5,6 +5,12 @@ var ACTIONS = {
   register: { handler: register, requiresAuth: false, requiresAdmin: false },
   login: { handler: login, requiresAuth: false, requiresAdmin: false },
   getMe: { handler: getMe, requiresAuth: true, requiresAdmin: false },
+  listDuties: { handler: listDuties, requiresAuth: true, requiresAdmin: false },
+  getMyDuties: { handler: getMyDuties, requiresAuth: true, requiresAdmin: false },
+  completeDuty: { handler: completeDuty, requiresAuth: true, requiresAdmin: false },
+  createDuty: { handler: createDuty, requiresAuth: true, requiresAdmin: true },
+  updateDuty: { handler: updateDuty, requiresAuth: true, requiresAdmin: true },
+  deleteDuty: { handler: deleteDuty, requiresAuth: true, requiresAdmin: true },
 };
 
 function routeAction_(actionName, payload, token) {

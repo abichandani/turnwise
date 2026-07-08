@@ -5,8 +5,10 @@ function bootstrapSheets() {
   ensureSheet_(SHEET_NAMES.USERS, USERS_HEADERS);
   ensureSheet_(SHEET_NAMES.FLOOR_CONFIG, FLOORCONFIG_HEADERS);
   ensureSheet_(SHEET_NAMES.LOGS, LOGS_HEADERS);
-  // Later phases append their own tab creation here (Duties/DutyAssignmentHistory in
-  // Phase 3, SkipRequests in Phase 4, Notifications in Phase 6).
+  ensureSheet_(SHEET_NAMES.DUTIES, DUTIES_HEADERS);
+  ensureSheet_(SHEET_NAMES.DUTY_HISTORY, DUTY_HISTORY_HEADERS);
+  // Later phases append their own tab creation here (SkipRequests in Phase 4,
+  // Notifications in Phase 6).
 }
 
 function bootstrapAdmin() {

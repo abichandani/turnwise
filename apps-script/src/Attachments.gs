@@ -1,0 +1,32 @@
+function getDutyAttachmentsFolder_() {
+  var folderId = PropertiesService.getScriptProperties().getProperty('DUTY_ATTACHMENTS_FOLDER_ID');
+  if (!folderId) {
+    throw new Error('Script property DUTY_ATTACHMENTS_FOLDER_ID is not set.');
+  }
+  return DriveApp.getFolderById(folderId);
+}
+
+// attachment: { base64, fileName, mimeType } — sent as-is from the mobile client since
+// Apps Script Web Apps only accept a JSON body, not multipart form uploads.
+function uploadDutyAttachment_(attachment) {
+  var bytes = Utilities.base64Decode(attachment.base64);
+  var blob = Utilities.newBlob(bytes, attachment.mimeType, attachment.fileName);
+  var file = getDutyAttachmentsFolder_().createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  return {
+    attachment_drive_file_id: file.getId(),
+    attachment_file_name: attachment.fileName,
+    attachment_mime_type: attachment.mimeType,
+    attachment_url: file.getUrl(),
+  };
+}
+
+function deleteDutyAttachment_(fileId) {
+  if (!fileId) return;
+  try {
+    DriveApp.getFileById(fileId).setTrashed(true);
+  } catch (e) {
+    // Already gone (manually deleted from Drive) — not fatal.
+  }
+}

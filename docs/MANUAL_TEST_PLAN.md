@@ -27,4 +27,19 @@ Apps Script has no local emulator and can't run inside Jest, so every real HTTP 
 - [ ] `getMe` with no token / expired / tampered token → `TOKEN_INVALID` or `TOKEN_EXPIRED`
 - [ ] Concurrent `register` for the same room number (two requests fired near-simultaneously via `docs/requests.http` or similar) — only one succeeds, confirming `LockService` prevents a double-registration race
 
-(Phases 3–10 checklists added as each phase lands.)
+## Phase 3
+- [ ] `bootstrapSheets()` re-run creates `Duties` and `DutyAssignmentHistory` tabs with correct header rows (idempotent — existing tabs untouched)
+- [ ] `createDuty` (as admin) happy path with 2+ registered rooms → assigns the first occupied room per `direction` (ASC → `ROOM_LIST[0]` if occupied, DESC → `ROOM_LIST[n-1]`), writes a `Duties` row, opens one `ASSIGNED` `DutyAssignmentHistory` row, logs `DUTY_CREATED` + `DUTY_ASSIGNED`
+- [ ] `createDuty` with an image attachment (base64 payload) → Drive file created in `DUTY_ATTACHMENTS_FOLDER_ID`, shared `ANYONE_WITH_LINK`/`VIEW`, `attachment_url` opens the file in a browser
+- [ ] `createDuty` with a PDF attachment → same as above, correct `mimeType`
+- [ ] `createDuty` / `updateDuty` / `deleteDuty` called by a non-admin token → `FORBIDDEN_NOT_ADMIN`
+- [ ] `listDuties` returns all non-deleted duties; `getMyDuties` (as the currently-assigned resident) returns only that duty
+- [ ] `completeDuty` (as the assigned resident) happy path → closes the open history row (`status: COMPLETED`, `completed_at` set), rotates `current_assigned_room` to the next occupied room per `direction`, opens a new `ASSIGNED` history row, logs `DUTY_COMPLETED` + `DUTY_ASSIGNED`
+- [ ] `completeDuty` called by a room the duty isn't assigned to → `DUTY_NOT_ASSIGNED_TO_YOU`
+- [ ] `completeDuty` with an unknown/deleted `dutyId` → `DUTY_NOT_FOUND`
+- [ ] `updateDuty` replacing an attachment trashes the old Drive file (confirm it lands in Drive trash, not left orphaned)
+- [ ] `deleteDuty` soft-deletes (`is_deleted = TRUE`) — duty disappears from `listDuties`/`getMyDuties` but its `DutyAssignmentHistory` rows and Drive attachment are untouched (hard delete is Phase 9)
+- [ ] Concurrent `completeDuty` calls for the same duty (fired near-simultaneously) — only one rotation happens, confirming `LockService` prevents a double-advance race
+- [ ] Mobile: home tab shows assigned duties (or the empty-state message with none assigned) and "Mark done" completes + refreshes; duties tab shows the room ring + full duty list including admin add/edit/delete; account tab shows the signed-in user's info and logs out correctly
+
+(Phases 4–10 checklists added as each phase lands.)

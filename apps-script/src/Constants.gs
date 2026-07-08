@@ -13,6 +13,8 @@ var SHEET_NAMES = {
   USERS: 'Users',
   FLOOR_CONFIG: 'FloorConfig',
   LOGS: 'Logs',
+  DUTIES: 'Duties',
+  DUTY_HISTORY: 'DutyAssignmentHistory',
 };
 
 var USERS_HEADERS = [
@@ -34,6 +36,41 @@ var USERS_HEADERS = [
 var FLOORCONFIG_HEADERS = ['key', 'value', 'updated_at', 'updated_by'];
 
 var LOGS_HEADERS = ['log_id', 'event_type', 'timestamp', 'actor_room_number', 'details'];
+
+var DUTIES_HEADERS = [
+  'duty_id',
+  'name',
+  'description',
+  'direction',
+  'current_assigned_room',
+  'attachment_drive_file_id',
+  'attachment_file_name',
+  'attachment_mime_type',
+  'attachment_url',
+  'is_deleted',
+  'deleted_at',
+  'created_at',
+  'updated_at',
+];
+
+var DUTY_HISTORY_HEADERS = [
+  'history_id',
+  'duty_id',
+  'room_number',
+  'status',
+  'assigned_at',
+  'completed_at',
+  'created_at',
+];
+
+var DUTY_STATUS = {
+  ASSIGNED: 'ASSIGNED',
+  COMPLETED: 'COMPLETED',
+  SKIPPED_APPROVED: 'SKIPPED_APPROVED',
+  REASSIGNED_USER_DELETED: 'REASSIGNED_USER_DELETED',
+  AWAY_HANDOFF: 'AWAY_HANDOFF',
+  AWAY_AUTO_SKIPPED: 'AWAY_AUTO_SKIPPED',
+};
 
 var FLOOR_CONFIG_KEYS = {
   FLOOR_PASSKEY: 'FLOOR_PASSKEY',
