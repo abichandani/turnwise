@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, PillToggle, TextField } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
+import { ApiError } from '@/lib/api';
 import { pickDutyAttachment } from '@/lib/attachment-picker';
 import type { AttachmentUpload, Duty, DutyInput } from '@/lib/duties';
 
@@ -49,8 +50,8 @@ export function DutyForm({ initial, onSubmit, onCancel }: DutyFormProps) {
         attachment: attachment ?? undefined,
         removeAttachment: !attachment && removeAttachment ? true : undefined,
       });
-    } catch {
-      setError('Some error occurred.');
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Some error occurred.');
     } finally {
       setSaving(false);
     }

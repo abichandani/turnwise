@@ -34,7 +34,7 @@ function verifyToken_(token) {
   var expectedSignatureB64 = Utilities.base64EncodeWebSafe(
     Utilities.computeHmacSha256Signature(payloadB64, getTokenSecret_())
   );
-  if (expectedSignatureB64 !== signatureB64) {
+  if (!timingSafeEqual_(expectedSignatureB64, signatureB64)) {
     throw AppError(ERROR_CODES.TOKEN_INVALID, 'Invalid token.');
   }
 

@@ -19,6 +19,12 @@ export default function LoginScreen() {
 
   const onSubmit = async () => {
     setError(null);
+
+    if (!roomNumber.trim() || !password) {
+      setError('Please enter your room number and password.');
+      return;
+    }
+
     setLoading(true);
     try {
       await login(roomNumber.trim(), password);

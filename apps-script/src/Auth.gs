@@ -1,5 +1,5 @@
 function register(payload) {
-  var roomNumber = payload && payload.roomNumber;
+  var roomNumber = payload && payload.roomNumber != null ? String(payload.roomNumber) : null;
   var name = payload && payload.name && String(payload.name).trim();
   var password = payload && payload.password;
   var floorPasskey = payload && payload.floorPasskey;
@@ -11,14 +11,12 @@ function register(payload) {
     throw AppError(ERROR_CODES.WEAK_PASSWORD, 'Password must be at least ' + MIN_PASSWORD_LENGTH + ' characters.');
   }
   var passkeyRow = findRowByKey_(SHEET_NAMES.FLOOR_CONFIG, 'key', FLOOR_CONFIG_KEYS.FLOOR_PASSKEY);
-  if (!passkeyRow || String(floorPasskey) !== String(passkeyRow.value)) {
+  if (!passkeyRow || !timingSafeEqual_(floorPasskey, passkeyRow.value)) {
     throw AppError(ERROR_CODES.INVALID_PASSKEY, 'Incorrect floor passkey.');
   }
 
   // A just-vacated room could otherwise be double-registered by two concurrent requests.
-  var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
+  return withLock_(function () {
     var existing = findRowByKey_(SHEET_NAMES.USERS, 'room_number', roomNumber);
     if (existing && !existing.is_deleted) {
       throw AppError(ERROR_CODES.DUPLICATE_ROOM, 'This room is already registered.');
@@ -50,9 +48,7 @@ function register(payload) {
 
     appendLog_(EVENT_TYPES.ACCOUNT_CREATED, roomNumber, { name: name });
     return { token: createToken_(user), user: publicUser_(user) };
-  } finally {
-    lock.releaseLock();
-  }
+  });
 }
 
 function login(payload) {
@@ -60,8 +56,15 @@ function login(payload) {
   var password = payload && payload.password;
 
   var user = findRowByKey_(SHEET_NAMES.USERS, 'room_number', roomNumber);
+  var validUser = user && !user.is_deleted;
+  // Always hash against *some* salt, even for a nonexistent/deleted room, so the
+  // response time doesn't reveal whether the room is registered (timing side channel).
+  var salt = validUser ? user.password_salt : DUMMY_PASSWORD_SALT;
+  var hash = hashPassword_(password, salt);
+  var hashMatches = validUser && timingSafeEqual_(hash, user.password_hash);
+
   // Same error for "no such room" and "wrong password" — don't reveal which one failed.
-  if (!user || user.is_deleted || hashPassword_(password, user.password_salt) !== user.password_hash) {
+  if (!validUser || !hashMatches) {
     throw AppError(ERROR_CODES.INVALID_CREDENTIALS, 'Incorrect room number or password.');
   }
 

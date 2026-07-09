@@ -100,6 +100,12 @@ var FLOOR_CONFIG_KEYS = {
 var DEFAULT_PASSWORD_HASH_ITERATIONS = 10000;
 var TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 var MIN_PASSWORD_LENGTH = 8;
+// Fixed salt used to hash the password on login attempts against a room that doesn't
+// exist, so the hash chain always runs and its timing can't reveal room existence.
+var DUMMY_PASSWORD_SALT = 'dummy-salt-for-nonexistent-room-timing-safety';
+
+var MAX_ATTACHMENT_BASE64_LENGTH = 7 * 1024 * 1024; // ~5MB decoded, base64-inflated
+var ALLOWED_ATTACHMENT_MIME_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'];
 
 var EVENT_TYPES = {
   ACCOUNT_CREATED: 'ACCOUNT_CREATED',
@@ -144,4 +150,5 @@ var ERROR_CODES = {
   WRONG_OLD_PASSWORD: 'WRONG_OLD_PASSWORD',
   USER_NOT_FOUND: 'USER_NOT_FOUND',
   CANNOT_DELETE_SELF_VIA_ADMIN: 'CANNOT_DELETE_SELF_VIA_ADMIN',
+  INVALID_ATTACHMENT: 'INVALID_ATTACHMENT',
 };
