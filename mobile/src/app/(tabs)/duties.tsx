@@ -32,23 +32,32 @@ export default function DutiesScreen() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    if (!token) return;
-    setError(null);
-    try {
-      const [allDuties, pending] = await Promise.all([
-        listDuties(token),
-        user?.isAdmin ? listSkipRequests(token) : Promise.resolve([]),
-      ]);
-      setDuties(allDuties);
-      setSkipRequests(pending);
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Some error occurred.');
-    }
-  }, [token, user?.isAdmin]);
+  const load = useCallback(
+    async (isMounted: () => boolean = () => true) => {
+      if (!token) return;
+      setError(null);
+      try {
+        const [allDuties, pending] = await Promise.all([
+          listDuties(token),
+          user?.isAdmin ? listSkipRequests(token) : Promise.resolve([]),
+        ]);
+        if (!isMounted()) return;
+        setDuties(allDuties);
+        setSkipRequests(pending);
+      } catch (e) {
+        if (!isMounted()) return;
+        setError(e instanceof ApiError ? e.message : 'Some error occurred.');
+      }
+    },
+    [token, user?.isAdmin]
+  );
 
   useEffect(() => {
-    load();
+    let mounted = true;
+    load(() => mounted);
+    return () => {
+      mounted = false;
+    };
   }, [load]);
 
   const onCreate = async (input: DutyInput) => {

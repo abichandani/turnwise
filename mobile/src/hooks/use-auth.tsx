@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import { callAction, type AuthResult, type PublicUser } from '@/lib/api';
+import { callAction, setUnauthorizedHandler, type AuthResult, type PublicUser } from '@/lib/api';
 import { clearToken, getToken, setToken as persistToken } from '@/lib/auth-storage';
 
 type AuthStatus = 'loading' | 'signedOut' | 'signedIn';
@@ -29,23 +29,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setTokenState] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     (async () => {
       const storedToken = await getToken();
       if (!storedToken) {
-        setStatus('signedOut');
+        if (!cancelled) setStatus('signedOut');
         return;
       }
       try {
         const me = await callAction<PublicUser>('getMe', {}, storedToken);
+        if (cancelled) return;
         setTokenState(storedToken);
         setUser(me);
         setStatus('signedIn');
       } catch {
         await clearToken();
-        setStatus('signedOut');
+        if (!cancelled) setStatus('signedOut');
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const signOut = useCallback(async () => {
+    await clearToken();
+    setTokenState(null);
+    setUser(null);
+    setStatus('signedOut');
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      void signOut();
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [signOut]);
 
   const applyAuthResult = useCallback(async (result: AuthResult) => {
     await persistToken(result.token);
@@ -69,13 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     [applyAuthResult]
   );
-
-  const signOut = useCallback(async () => {
-    await clearToken();
-    setTokenState(null);
-    setUser(null);
-    setStatus('signedOut');
-  }, []);
 
   const value = useMemo(
     () => ({ status, user, token, login, register, signOut }),

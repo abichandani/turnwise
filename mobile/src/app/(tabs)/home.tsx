@@ -22,20 +22,29 @@ export default function HomeScreen() {
   const [skipReason, setSkipReason] = useState('');
   const [submittingSkipId, setSubmittingSkipId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    if (!token) return;
-    setError(null);
-    try {
-      const [myDuties, mySkipRequests] = await Promise.all([getMyDuties(token), getMySkipRequests(token)]);
-      setDuties(myDuties);
-      setSkipRequests(mySkipRequests);
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Some error occurred.');
-    }
-  }, [token]);
+  const load = useCallback(
+    async (isMounted: () => boolean = () => true) => {
+      if (!token) return;
+      setError(null);
+      try {
+        const [myDuties, mySkipRequests] = await Promise.all([getMyDuties(token), getMySkipRequests(token)]);
+        if (!isMounted()) return;
+        setDuties(myDuties);
+        setSkipRequests(mySkipRequests);
+      } catch (e) {
+        if (!isMounted()) return;
+        setError(e instanceof ApiError ? e.message : 'Some error occurred.');
+      }
+    },
+    [token]
+  );
 
   useEffect(() => {
-    load();
+    let mounted = true;
+    load(() => mounted);
+    return () => {
+      mounted = false;
+    };
   }, [load]);
 
   const onComplete = async (dutyId: string) => {

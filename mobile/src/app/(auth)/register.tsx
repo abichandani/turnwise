@@ -21,6 +21,16 @@ export default function RegisterScreen() {
 
   const onSubmit = async () => {
     setError(null);
+
+    if (!roomNumber.trim() || !name.trim() || !floorPasskey.trim()) {
+      setError('Please fill in all fields.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+
     setLoading(true);
     try {
       await register({

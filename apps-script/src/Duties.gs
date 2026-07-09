@@ -15,9 +15,7 @@ function getMyDuties(payload, authContext) {
 function completeDuty(payload, authContext) {
   var dutyId = payload && payload.dutyId;
 
-  var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
+  return withLock_(function () {
     var duty = findRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId);
     if (!duty || duty.is_deleted) {
       throw AppError(ERROR_CODES.DUTY_NOT_FOUND, 'That duty no longer exists.');
@@ -35,9 +33,7 @@ function completeDuty(payload, authContext) {
     }
 
     return publicDuty_(findRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId));
-  } finally {
-    lock.releaseLock();
-  }
+  });
 }
 
 function createDuty(payload, authContext) {
@@ -45,9 +41,7 @@ function createDuty(payload, authContext) {
   var description = (payload && payload.description) || '';
   var direction = payload && payload.direction === 'DESC' ? 'DESC' : 'ASC';
 
-  var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
+  return withLock_(function () {
     var now = nowIso_();
     var dutyId = Utilities.getUuid();
     var occupied = getActiveResidentRoomSet_();
@@ -89,17 +83,13 @@ function createDuty(payload, authContext) {
     }
 
     return publicDuty_(duty);
-  } finally {
-    lock.releaseLock();
-  }
+  });
 }
 
 function updateDuty(payload, authContext) {
   var dutyId = payload && payload.dutyId;
 
-  var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
+  return withLock_(function () {
     var duty = findRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId);
     if (!duty || duty.is_deleted) {
       throw AppError(ERROR_CODES.DUTY_NOT_FOUND, 'That duty no longer exists.');
@@ -111,8 +101,9 @@ function updateDuty(payload, authContext) {
     if (payload.direction !== undefined) patch.direction = payload.direction === 'DESC' ? 'DESC' : 'ASC';
 
     if (payload.attachment) {
+      var newAttachmentFields = uploadDutyAttachment_(payload.attachment);
       deleteDutyAttachment_(duty.attachment_drive_file_id);
-      Object.assign(patch, uploadDutyAttachment_(payload.attachment));
+      Object.assign(patch, newAttachmentFields);
     } else if (payload.removeAttachment) {
       deleteDutyAttachment_(duty.attachment_drive_file_id);
       patch.attachment_drive_file_id = '';
@@ -125,25 +116,26 @@ function updateDuty(payload, authContext) {
     appendLog_(EVENT_TYPES.DUTY_UPDATED, authContext.roomNumber, { dutyId: dutyId });
 
     return publicDuty_(findRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId));
-  } finally {
-    lock.releaseLock();
-  }
+  });
 }
 
 function deleteDuty(payload, authContext) {
   var dutyId = payload && payload.dutyId;
-  var duty = findRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId);
-  if (!duty || duty.is_deleted) {
-    throw AppError(ERROR_CODES.DUTY_NOT_FOUND, 'That duty no longer exists.');
-  }
 
-  updateRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId, {
-    is_deleted: true,
-    deleted_at: nowIso_(),
+  return withLock_(function () {
+    var duty = findRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId);
+    if (!duty || duty.is_deleted) {
+      throw AppError(ERROR_CODES.DUTY_NOT_FOUND, 'That duty no longer exists.');
+    }
+
+    updateRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId, {
+      is_deleted: true,
+      deleted_at: nowIso_(),
+    });
+    appendLog_(EVENT_TYPES.DUTY_DELETED, authContext.roomNumber, { dutyId: dutyId, name: duty.name });
+
+    return { id: dutyId };
   });
-  appendLog_(EVENT_TYPES.DUTY_DELETED, authContext.roomNumber, { dutyId: dutyId, name: duty.name });
-
-  return { id: dutyId };
 }
 
 function publicDuty_(duty) {

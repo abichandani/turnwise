@@ -6,17 +6,15 @@ function requestSkip(payload, authContext) {
     throw AppError(ERROR_CODES.MISSING_REASON, 'Please provide a reason for skipping this duty.');
   }
 
-  var duty = findRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId);
-  if (!duty || duty.is_deleted) {
-    throw AppError(ERROR_CODES.DUTY_NOT_FOUND, 'That duty no longer exists.');
-  }
-  if (duty.current_assigned_room !== authContext.roomNumber) {
-    throw AppError(ERROR_CODES.DUTY_NOT_ASSIGNED_TO_YOU, "This duty isn't currently assigned to you.");
-  }
+  return withLock_(function () {
+    var duty = findRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', dutyId);
+    if (!duty || duty.is_deleted) {
+      throw AppError(ERROR_CODES.DUTY_NOT_FOUND, 'That duty no longer exists.');
+    }
+    if (duty.current_assigned_room !== authContext.roomNumber) {
+      throw AppError(ERROR_CODES.DUTY_NOT_ASSIGNED_TO_YOU, "This duty isn't currently assigned to you.");
+    }
 
-  var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
     if (findPendingSkipRequest_(dutyId, authContext.roomNumber)) {
       throw AppError(
         ERROR_CODES.SKIP_REQUEST_ALREADY_PENDING,
@@ -40,9 +38,7 @@ function requestSkip(payload, authContext) {
     appendLog_(EVENT_TYPES.SKIP_REQUESTED, authContext.roomNumber, { dutyId: dutyId, reason: reason });
 
     return publicSkipRequest_(request);
-  } finally {
-    lock.releaseLock();
-  }
+  });
 }
 
 function getMySkipRequests(payload, authContext) {
@@ -63,9 +59,7 @@ function resolveSkipRequest(payload, authContext) {
   var approve = payload && payload.decision === 'APPROVE';
   var note = (payload && payload.note && String(payload.note).trim()) || '';
 
-  var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
+  return withLock_(function () {
     var request = findRowByKey_(SHEET_NAMES.SKIP_REQUESTS, 'request_id', requestId);
     if (!request || request.status !== SKIP_REQUEST_STATUS.PENDING) {
       throw AppError(ERROR_CODES.SKIP_REQUEST_NOT_FOUND, 'That skip request is no longer pending.');
@@ -100,9 +94,7 @@ function resolveSkipRequest(payload, authContext) {
     }
 
     return publicSkipRequest_(findRowByKey_(SHEET_NAMES.SKIP_REQUESTS, 'request_id', requestId));
-  } finally {
-    lock.releaseLock();
-  }
+  });
 }
 
 function findPendingSkipRequest_(dutyId, roomNumber) {
