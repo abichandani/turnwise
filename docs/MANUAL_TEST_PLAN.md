@@ -56,4 +56,21 @@ Apps Script has no local emulator and can't run inside Jest, so every real HTTP 
 - [ ] `resolveSkipRequest` on an already-resolved or unknown `requestId` → `SKIP_REQUEST_NOT_FOUND`
 - [ ] Mobile: home tab shows "Request skip" on an assigned duty, submitting hides "Mark done" and shows the pending state with the reason; duties tab's admin skip-request queue shows the pending request and Approve/Deny both refresh the screen correctly
 
-(Phases 5–10 checklists added as each phase lands.)
+## Phase 5
+- [ ] `toggleAway` happy path (`isAway: true`, no `delegateRoom`) → caller's `Users` row gets `is_away = TRUE`, `away_delegate_room` cleared, logs `AWAY_STATUS_CHANGED`, returns updated `PublicUser` with `isAway: true`
+- [ ] `toggleAway` with `isAway: true` and a valid occupied `delegateRoom` → row updated with that delegate, returned `awayDelegateRoom` matches
+- [ ] `toggleAway` with `delegateRoom` equal to the caller's own room → `INVALID_DELEGATE_ROOM`
+- [ ] `toggleAway` with `delegateRoom` that's unoccupied/not on the floor → `INVALID_DELEGATE_ROOM`
+- [ ] `toggleAway` with `isAway: false` → clears `away_delegate_room` regardless of what was previously set
+- [ ] `sendNudge` (as another resident) on a duty currently assigned to someone else → logs `NUDGE_SENT` with the target room, returns `{ ok: true }`
+- [ ] `sendNudge` on your own currently-assigned duty → `CANNOT_NUDGE_YOURSELF`
+- [ ] `sendNudge` on an unassigned duty (`current_assigned_room` empty) → `DUTY_UNASSIGNED`
+- [ ] `sendNudge` with an unknown/deleted `dutyId` → `DUTY_NOT_FOUND`
+- [ ] Auto-skip: mark the next-in-rotation room away with no delegate, then `completeDuty` on the current holder → the away room is skipped (a closed `AWAY_AUTO_SKIPPED` `DutyAssignmentHistory` row + `AWAY_AUTO_SKIPPED` log for it), rotation lands on the following occupied non-away room
+- [ ] Hand-off: mark the next-in-rotation room away with a valid delegate set, then `completeDuty` → a closed `AWAY_HANDOFF` history row + `AWAY_HANDOFF` log for the away room, duty's `current_assigned_room` becomes the delegate's room with a new `ASSIGNED` history row
+- [ ] Chained away rooms: two consecutive rooms in the rotation both away (one auto-skipped, one handed off) → both produce their own history rows/logs in order, duty lands on the correct final room
+- [ ] All-away edge case: every occupied room is away with no usable delegate → rotation returns no room (`current_assigned_room` cleared), no infinite loop
+- [ ] `createDuty`'s initial assignment also respects away/hand-off/auto-skip when the first candidate room(s) are away
+- [ ] Mobile: account tab's Home/Away toggle and delegate room picker persist and reflect `getMe`/`toggleAway` responses; duties tab shows a "Nudge" button on any duty assigned to someone else (not on your own) and it disables/relabels after sending
+
+(Phases 6–10 checklists added as each phase lands.)

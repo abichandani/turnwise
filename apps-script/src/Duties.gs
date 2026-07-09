@@ -50,8 +50,7 @@ function createDuty(payload, authContext) {
   try {
     var now = nowIso_();
     var dutyId = Utilities.getUuid();
-    var occupied = getActiveResidentRoomSet_();
-    var initialRoom = getNextOccupiedRoom_(ROOM_LIST, direction, null, occupied);
+    var initialRoom = pickRoomHandlingAway_(dutyId, direction, null, now);
 
     var attachmentFields = {
       attachment_drive_file_id: '',
@@ -167,8 +166,7 @@ function publicDuty_(duty) {
 function advanceDutyRotation_(duty, now, closedStatus) {
   closeOpenHistoryRow_(duty.duty_id, now, closedStatus);
 
-  var occupied = getActiveResidentRoomSet_();
-  var nextRoom = getNextOccupiedRoom_(ROOM_LIST, duty.direction, duty.current_assigned_room, occupied);
+  var nextRoom = pickRoomHandlingAway_(duty.duty_id, duty.direction, duty.current_assigned_room, now);
 
   updateRowByKey_(SHEET_NAMES.DUTIES, 'duty_id', duty.duty_id, {
     current_assigned_room: nextRoom || '',
