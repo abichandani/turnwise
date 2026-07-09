@@ -11,6 +11,7 @@ import { Badge, Button, Card, EmptyState, RoomRing } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { ApiError } from '@/lib/api';
+import { sendNudge } from '@/lib/away';
 import { createDuty, deleteDuty, listDuties, updateDuty, type Duty, type DutyInput } from '@/lib/duties';
 import { listSkipRequests, resolveSkipRequest, type SkipRequest } from '@/lib/skip-requests';
 
@@ -31,6 +32,8 @@ export default function DutiesScreen() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [nudgingId, setNudgingId] = useState<string | null>(null);
+  const [nudgedIds, setNudgedIds] = useState<Set<string>>(new Set());
 
   const load = useCallback(
     async (isMounted: () => boolean = () => true) => {
@@ -98,6 +101,20 @@ export default function DutiesScreen() {
       setError(e instanceof ApiError ? e.message : 'Some error occurred.');
     } finally {
       setResolvingId(null);
+    }
+  };
+
+  const onNudge = async (dutyId: string) => {
+    if (!token) return;
+    setNudgingId(dutyId);
+    setError(null);
+    try {
+      await sendNudge(token, dutyId);
+      setNudgedIds((prev) => new Set(prev).add(dutyId));
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Some error occurred.');
+    } finally {
+      setNudgingId(null);
     }
   };
 
@@ -205,6 +222,16 @@ export default function DutiesScreen() {
                         onPress={() => WebBrowser.openBrowserAsync(duty.attachment!.url)}>
                         View attachment ({duty.attachment.fileName})
                       </ThemedText>
+                    ) : null}
+
+                    {duty.currentAssignedRoom && duty.currentAssignedRoom !== user?.roomNumber ? (
+                      <Button
+                        label={nudgedIds.has(duty.id) ? 'Nudge sent' : 'Nudge'}
+                        variant="secondary"
+                        loading={nudgingId === duty.id}
+                        disabled={nudgedIds.has(duty.id)}
+                        onPress={() => onNudge(duty.id)}
+                      />
                     ) : null}
 
                     {user?.isAdmin ? (
